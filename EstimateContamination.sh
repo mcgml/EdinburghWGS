@@ -5,7 +5,6 @@ set -euo pipefail
 PBS_O_WORKDIR=(`echo $PBS_O_WORKDIR | sed "s/^\/state\/partition1//" `)
 cd $PBS_O_WORKDIR
 
-set -euo pipefail
 file=$(ls *bam)
 
 #Calculate dna contamination: sample-to-sample contamination

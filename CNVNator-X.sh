@@ -6,7 +6,7 @@ set -euo pipefail
 PBS_O_WORKDIR=(`echo $PBS_O_WORKDIR | sed "s/^\/state\/partition1//" `)
 cd $PBS_O_WORKDIR
 
-#RD-CNV calling with CNVNator
+#RD-CNV X calling with CNVNator
 sampleId=$(basename $PWD)
 
 #extract reads

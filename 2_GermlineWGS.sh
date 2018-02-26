@@ -148,20 +148,20 @@ annotateVCF(){
 /usr/java/jdk1.7.0_51/bin/java -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx4g -jar /share/apps/GATK-distros/GATK_3.4.0/GenomeAnalysisTK.jar \
 -T VariantFiltration \
 -R /data/db/human/gatk/v0/hg38/Homo_sapiens_assembly38.fasta \
--V SIGNAL_WGS_recalibrated_variants.vcf \
--ped SIGNAL_WGS_pedigree.ped \
+-V "$seqId"_recalibrated_variants.vcf \
+-ped "$seqId"_pedigree.ped \
 --genotypeFilterExpression "DP < 10" \
 --genotypeFilterName "LowDP" \
--o SIGNAL_WGS_recalibrated_variants_genotype_filtered.vcf
+-o "$seqId"_recalibrated_variants_genotype_filtered.vcf
 
 #annotate with VEP
-annotateVCF SIGNAL_WGS_recalibrated_variants_genotype_filtered.vcf SIGNAL_WGS_recalibrated_variants_genotype_filtered_vep.vcf
+annotateVCF "$seqId"_recalibrated_variants_genotype_filtered.vcf "$seqId"_recalibrated_variants_genotype_filtered_vep.vcf
 
 #add gnomad allele frequencies
 /share/apps/jre-distros/jre1.8.0_101/bin/java -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx16g -jar /share/apps/GATK-distros/GATK_3.8.0/GenomeAnalysisTK.jar \
 -T VariantAnnotator \
 -R /data/db/human/gatk/v0/hg38/Homo_sapiens_assembly38.fasta \
--V SIGNAL_WGS_recalibrated_variants_genotype_filtered_vep.vcf \
+-V "$seqId"_recalibrated_variants_genotype_filtered_vep.vcf \
 --resource:GNOMAD_2.0.1_Genome_chr1 /data/db/human/gnomad/hg38/gnomad.genomes.r2.0.1.sites.1.hg38.vcf.gz \
 --resource:GNOMAD_2.0.1_Genome_chr2 /data/db/human/gnomad/hg38/gnomad.genomes.r2.0.1.sites.2.hg38.vcf.gz \
 --resource:GNOMAD_2.0.1_Genome_chr3 /data/db/human/gnomad/hg38/gnomad.genomes.r2.0.1.sites.3.hg38.vcf.gz \
@@ -210,48 +210,28 @@ annotateVCF SIGNAL_WGS_recalibrated_variants_genotype_filtered.vcf SIGNAL_WGS_re
 -E GNOMAD_2.0.1_Genome_chr22.AF_POPMAX \
 -E GNOMAD_2.0.1_Genome_chrX.AF_POPMAX \
 -E GNOMAD_2.0.1_Exome.AF_POPMAX \
--ped SIGNAL_WGS_pedigree.ped \
+-ped "$seqId"_pedigree.ped \
 --resourceAlleleConcordance \
--o SIGNAL_WGS_recalibrated_variants_genotype_filtered_vep_gnomad.vcf
+-o "$seqId"_recalibrated_variants_genotype_filtered_vep_gnomad.vcf
 
 #validate final VCF
 /share/apps/jre-distros/jre1.8.0_101/bin/java -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx16g -jar /share/apps/GATK-distros/GATK_3.8.0/GenomeAnalysisTK.jar \
 -T ValidateVariants \
 -R /data/db/human/gatk/v0/hg38/Homo_sapiens_assembly38.fasta \
 --reference_window_stop 300 \
--V SIGNAL_WGS_recalibrated_variants_genotype_filtered_vep_gnomad.vcf
-
-#report variants to text
-/share/apps/jre-distros/jre1.8.0_131/bin/java -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx48g -jar /data/diagnostics/apps/VariantReporterSpark/VariantReporterSpark-1.3.2/VariantReporterSpark.jar \
--V SIGNAL_WGS_recalibrated_variants_genotype_filtered_vep_gnomad.vcf \
--P SIGNAL_WGS_pedigree.ped \
--T 8 \
--N
+-V "$seqId"_recalibrated_variants_genotype_filtered_vep_gnomad.vcf
 
 ### QC ###
 
 #relatedness test
 /share/apps/vcftools-distros/vcftools-0.1.14/build/bin/vcftools \
 --relatedness2 \
---out SIGNAL_WGS_recalibrated_variants_gcp_phased_gtfiltered_vep_gnomad_relatedness \
---vcf SIGNAL_WGS_recalibrated_variants_gcp_phased_gtfiltered_vep_gnomad.vcf
+--out "$seqId"_recalibrated_variants_gcp_phased_gtfiltered_vep_gnomad_relatedness \
+--vcf "$seqId"_recalibrated_variants_gcp_phased_gtfiltered_vep_gnomad.vcf
 
 #Variant Evaluation
 /share/apps/jre-distros/jre1.8.0_131/bin/java -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx24g -jar /share/apps/picard-tools-distros/picard-tools-2.8.3//picard.jar CollectVariantCallingMetrics \
-INPUT=SIGNAL_WGS_recalibrated_variants_gcp_phased_gtfiltered_vep_gnomad.vcf.gz \
+INPUT="$seqId"_recalibrated_variants_gcp_phased_gtfiltered_vep_gnomad.vcf.gz \
 OUTPUT=CollectVariantCallingMetrics.txt \
 DBSNP=/data/db/human/gatk/v0/hg38/Homo_sapiens_assembly38.dbsnp138.vcf \
 THREAD_COUNT=12
-
-#compare test NA12878 with gold standard
-/share/apps/rtg-distros/rtg-tools-3.8.4/rtg vcfeval \
--b /data/db/human/giab/3.3.2-hg38/HG001_GRCh38_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-10X-SOLID_CHROM1-X_v.3.3.2_highconf_PGandRTGphasetransfer.vcf.gz \
--c "$2" \
--e /data/db/human/giab/3.3.2-hg38/HG001_GRCh38_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-10X-SOLID_CHROM1-X_v.3.3.2_highconf_nosomaticdel_noCENorHET7.bed \
--o "RTG" \
--t /data/db/human/gatk/v0/hg38/Homo_sapiens_assembly38-SDF \
---sample "HG001,$1"
-
-#Validate VCF file
-
-
