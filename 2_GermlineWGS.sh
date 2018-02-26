@@ -132,7 +132,7 @@ annotateVCF(){
 -nt 12
 
 #Apply the desired level of recalibration to the Indels in the call set
-usr/java/jdk1.7.0_51/bin/java -Djava.io.tmpdir=/state/partition1/tmpdir -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xmx4g -jar /share/apps/GATK-distros/GATK_3.4.0/GenomeAnalysisTK.jar \
+/usr/java/jdk1.7.0_51/bin/java -Djava.io.tmpdir=/state/partition1/tmpdir -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Xmx4g -jar /share/apps/GATK-distros/GATK_3.4.0/GenomeAnalysisTK.jar \
 -T ApplyRecalibration \
 -R /data/db/human/gatk/v0/hg38/Homo_sapiens_assembly38.fasta \
 -input "$seqId"_recalibrated_snps_raw_indels.vcf \
@@ -221,13 +221,12 @@ annotateVCF SIGNAL_WGS_recalibrated_variants_genotype_filtered.vcf SIGNAL_WGS_re
 --reference_window_stop 300 \
 -V SIGNAL_WGS_recalibrated_variants_genotype_filtered_vep_gnomad.vcf
 
-##TODO##
-#write to text file
-/share/apps/jre-distros/jre1.8.0_101/bin/java -Xmx192g -jar /data/diagnostics/apps/VariantReporterSpark/VariantReporterSpark-1.3.1/VariantReporterSpark.jar \
--N \
+#report variants to text
+/share/apps/jre-distros/jre1.8.0_131/bin/java -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx48g -jar /data/diagnostics/apps/VariantReporterSpark/VariantReporterSpark-1.3.2/VariantReporterSpark.jar \
+-V SIGNAL_WGS_recalibrated_variants_genotype_filtered_vep_gnomad.vcf \
 -P SIGNAL_WGS_pedigree.ped \
--T 12 \
--V SIGNAL_WGS_recalibrated_variants_genotype_filtered_vep_gnomad.vcf
+-T 8 \
+-N
 
 ### QC ###
 
